@@ -16,12 +16,11 @@ class Object(object):
 
     class Body(object):
 
-        def __init__(self, pos, color, head=False):
+        def __init__(self, pos, color):
             self.dirnx = 0
             self.dirny = 0
             self.pos = pos
             self.color = color
-            self.head = head
 
         def move(self, dirnx, dirny, max):
             if self.pos[0] + dirnx > max:
@@ -50,21 +49,23 @@ class Object(object):
         for component in self.components:
             component.update(self, scene, engine)
 
+    def is_on_screen(self, rows):
+        return self.body[0].pos[0] < rows and self.body[0].pos[1] < rows
+
     def grow(self):
-        tail = self.body[-1]
-        dx, dy = tail.dirnx, tail.dirny
+        dirnx, dirny = self.body[-1].dirnx, self.body[-1].dirny
 
-        if dx == 1 and dy == 0:
-            self.body.append(self.Body((tail.pos[0] - 1, tail.pos[1]), tail.color))
-        elif dx == -1 and dy == 0:
-            self.body.append(self.Body((tail.pos[0] + 1, tail.pos[1]), tail.color))
-        elif dx == 0 and dy == 1:
-            self.body.append(self.Body((tail.pos[0], tail.pos[1] - 1), tail.color))
-        elif dx == 0 and dy == -1:
-            self.body.append(self.Body((tail.pos[0], tail.pos[1] + 1), tail.color))
+        if dirnx == 1 and dirny == 0:
+            self.body.append(self.Body((self.body[-1].pos[0] - 1, self.body[-1].pos[1]), self.body[-1].color))
+        elif dirnx == -1 and dirny == 0:
+            self.body.append(self.Body((self.body[-1].pos[0] + 1, self.body[-1].pos[1]), self.body[-1].color))
+        elif dirnx == 0 and dirny == 1:
+            self.body.append(self.Body((self.body[-1].pos[0], self.body[-1].pos[1] - 1), self.body[-1].color))
+        elif dirnx == 0 and dirny == -1:
+            self.body.append(self.Body((self.body[-1].pos[0], self.body[-1].pos[1] + 1), self.body[-1].color))
 
-        self.body[-1].dirnx = dx
-        self.body[-1].dirny = dy
+        self.body[-1].dirnx = dirnx
+        self.body[-1].dirny = dirny
 
     def draw(self, screen, size, engine):
         for part in self.body:
