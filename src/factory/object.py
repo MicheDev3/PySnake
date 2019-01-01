@@ -67,9 +67,9 @@ class Object(object):
         self.body[-1].dirnx = dirnx
         self.body[-1].dirny = dirny
 
-    def draw(self, screen, size, engine):
+    def draw(self, size, engine):
         for part in self.body:
             pos_x, pos_y = part.pos
             engine.draw_rect(
-                screen, part.color, (pos_x * size + 1, pos_y * size + 1, size - 2, size - 2)
+                engine.screen, part.color, (pos_x * size + 1, pos_y * size + 1, size - 2, size - 2)
             )

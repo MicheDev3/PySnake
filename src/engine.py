@@ -1,25 +1,18 @@
-import enum
 import pygame
+import thorpy
 
 
 class PyEngine(object):
 
-    class Input(enum.IntEnum):
-        # TODO add mapping key with some settings page
-        UP = pygame.K_UP
-        DOWN = pygame.K_DOWN
-        LEFT = pygame.K_LEFT
-        RIGHT = pygame.K_RIGHT
-
-    class Event(enum.IntEnum):
-        QUIT = pygame.QUIT
-
     def __init__(self):
         self._lib = pygame
+        self._gui = thorpy
         self._lib.init()
+        self._screensize = (500, 500)
         self._clock = self._lib.time.Clock()
+        self._screen = self._lib.display.set_mode(self._screensize)
 
-    def on_quit(self):
+    def on_shutdown(self):
         self._lib.quit()
 
     @property
@@ -38,15 +31,38 @@ class PyEngine(object):
     def display(self):
         return self._lib.display
 
+    @property
+    def screensize(self):
+        return self._screensize
+
+    @property
+    def screen(self):
+        return self._screen
+
+    def make_text(self, text, position=None, color=(255, 255, 255), func=None, params=None):
+        text = self._gui.OneLineText.make(text, func, params)
+        text.set_font_color(color)
+        if position:
+            text.set_topleft(position)
+        return text
+
+    def make_button(self, text, func=None, params=None):
+        return self._gui.make_button(text, func, params)
+
+    def make_box(self, elements, position, size=None):
+        box = self._gui.Box.make(elements, size)
+        box.set_topleft(position)
+        return box
+
+    def make_menu(self, box=None):
+        menu = self._gui.Menu(box)
+        for element in menu.get_population():
+            element.surface = self.screen
+        return menu
+
     def push_event(self, event, data=None):
         event = self._lib.event.Event(event, data or {})
         return self._lib.event.post(event)
 
-    def draw_line(self, surface, color, start_pos, end_pos, width=1):
-        self._lib.draw.line(surface, color, start_pos, end_pos, width)
-
     def draw_rect(self, surface, color, rect, width=0):
         self._lib.draw.rect(surface, color, rect, width)
-
-    def draw_circle(self, surface, color, pos, radius, width=0):
-        self._lib.draw.circle(surface, color, pos, radius, width)

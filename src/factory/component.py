@@ -1,5 +1,7 @@
 import random
 
+from src.event import EVENT_TYPE
+
 __all__ = ['PlayerInputComponent', 'CollisionComponent']
 
 
@@ -13,16 +15,16 @@ class PlayerInputComponent(object):
     def update(self, game_object, scene, engine):
         keys = engine.keys_pressed
         if game_object.is_on_screen(scene.rows):
-            if keys[engine.Input.UP] and self.dirny != 1:
+            if keys[EVENT_TYPE['UP']] and self.dirny != 1:
                 self.dirnx = 0
                 self.dirny = -1
-            if keys[engine.Input.DOWN] and self.dirny != -1:
+            if keys[EVENT_TYPE['DOWN']] and self.dirny != -1:
                 self.dirnx = 0
                 self.dirny = 1
-            if keys[engine.Input.LEFT] and self.dirnx != 1:
+            if keys[EVENT_TYPE['LEFT']] and self.dirnx != 1:
                 self.dirnx = -1
                 self.dirny = 0
-            if keys[engine.Input.RIGHT] and self.dirnx != -1:
+            if keys[EVENT_TYPE['RIGHT']] and self.dirnx != -1:
                 self.dirnx = 1
                 self.dirny = 0
 
@@ -51,10 +53,11 @@ class CollisionComponent(object):
                 if len(body) > 1:
                     head, body = body[0], body[1:]
                     if self.detect_collision(head.pos, body) > 0:
-                        engine.push_event(engine.Event.QUIT)
+                        engine.push_event(EVENT_TYPE['DEAD'])
                 continue
             # detecting collision with other objects
             if self.detect_collision(obj.body[-1].pos, body):
+                engine.push_event(EVENT_TYPE['SNACK_EATEN'])
                 while True:
                     pos = (random.randrange(scene.rows), random.randrange(scene.rows))
                     if self.detect_collision(pos, body) > 0:
