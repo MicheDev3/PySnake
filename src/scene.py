@@ -13,7 +13,8 @@ class Scene(object):
 
     def on_event(self, event):
         self.scenes[self.current].on_event(event)
-        self.scenes[self.current]._menu.react(event)
+        if self.scenes[self.current]._menu:
+            self.scenes[self.current]._menu.react(event)
 
         if event.type == EVENT_TYPE['START']:
             self.current = "GameScene"
@@ -82,7 +83,6 @@ class GameScene(object):
                     )
         # gui elements
         # TODO fix position text inside the box
-        # TODO fix enlightening box even when not rendered
         self._score_text = self._engine.make_text("")
         self._retry_button = self._engine.make_button(
             "Retry", func=self._start,
@@ -93,7 +93,6 @@ class GameScene(object):
         self._box = self._engine.make_box(
             [self._score_text, self._retry_button, self._menu_button], position, size=size
         )
-        self._menu = self._engine.make_menu(self._box)
 
     def _render_gui(self):
         self._box.blit()
@@ -101,6 +100,7 @@ class GameScene(object):
 
     def _start(self):
         self._score = 0
+        self._menu = None  # reset the menu object
         self._is_dead = False
         self._game_objects = [ObjectFactory.create_snack(),
                               ObjectFactory.create_snake()
@@ -119,6 +119,11 @@ class GameScene(object):
             self._score += 1
         if event.type == EVENT_TYPE['DEAD']:
             self._is_dead = True
+            # create the menu box only when _is_dead
+            # is True and delete when False, this avoid
+            # rendering the box when hovering with
+            # the cursor
+            self._menu = self._engine.make_menu(self._box)
             self._score_text.set_text("Score: %s" % self._score)
 
     def on_update(self):
@@ -128,10 +133,11 @@ class GameScene(object):
 
         if self._is_dead:
             self._render_gui()
-        else:
-            for game_object in self._game_objects:
-                game_object.update(self, self._engine)
-                game_object.draw(width // self.rows, self._engine)
+            return
+        
+        for game_object in self._game_objects:
+            game_object.update(self, self._engine)
+            game_object.draw(width // self.rows, self._engine)
 
 
 class SettingsScene(object):
