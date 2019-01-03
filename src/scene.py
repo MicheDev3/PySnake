@@ -73,8 +73,8 @@ class GameScene(object):
         self.rows = 20
         self._engine = engine
 
+        self._reset()
         self._create_gui()
-        self._start()
 
     def _create_gui(self):
         size = (100, 100)
@@ -85,10 +85,10 @@ class GameScene(object):
         # TODO fix position text inside the box
         self._score_text = self._engine.make_text("")
         self._retry_button = self._engine.make_button(
-            "Retry", func=self._start,
+            "Retry", func=self._reset
         )
         self._menu_button = self._engine.make_button(
-            "Menu", func=self._engine.push_event, params={'event': EVENT_TYPE['MENU']}
+            "Menu", func=self._quit
         )
         self._box = self._engine.make_box(
             [self._score_text, self._retry_button, self._menu_button], position, size=size
@@ -98,13 +98,19 @@ class GameScene(object):
         self._box.blit()
         self._box.update()
 
-    def _start(self):
+    def _reset(self):
         self._score = 0
         self._menu = None  # reset the menu object
         self._is_dead = False
         self._game_objects = [ObjectFactory.create_snack(),
                               ObjectFactory.create_snake()
                               ]
+
+    def _quit(self):
+        self._reset()
+        self._engine.push_event(
+            EVENT_TYPE['MENU']
+        )
 
     @property
     def game_objects(self):

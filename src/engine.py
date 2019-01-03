@@ -1,31 +1,28 @@
-import pygame
-import thorpy
+from src.vendor.pygame import PyGame
+from src.vendor.thorpy import Thorpy
 
 
 class PyEngine(object):
 
     def __init__(self):
-        self._lib = pygame
-        self._gui = thorpy
-        self._lib.init()
         self._screensize = (500, 500)
-        self._clock = self._lib.time.Clock()
-        self._screen = self._lib.display.set_mode(self._screensize)
+        self._lib = PyGame(self._screensize)
+        self._gui = Thorpy(self._lib.screen)
 
     def on_shutdown(self):
         self._lib.quit()
 
     @property
     def events(self):
-        return self._lib.event.get()
+        return self._lib.events
 
     @property
     def keys_pressed(self):
-        return self._lib.key.get_pressed()
+        return self._lib.keys_pressed
 
     @property
     def clock(self):
-        return self._clock
+        return self._lib.clock
 
     @property
     def display(self):
@@ -37,32 +34,22 @@ class PyEngine(object):
 
     @property
     def screen(self):
-        return self._screen
+        return self._lib.screen
 
     def make_text(self, text, position=None, color=(255, 255, 255), func=None, params=None):
-        text = self._gui.OneLineText.make(text, func, params)
-        text.set_font_color(color)
-        if position:
-            text.set_topleft(position)
-        return text
+        return self._gui.make_text(text, position, color, func, params)
 
     def make_button(self, text, func=None, params=None):
         return self._gui.make_button(text, func, params)
 
     def make_box(self, elements, position, size=None):
-        box = self._gui.Box.make(elements, size)
-        box.set_topleft(position)
-        return box
+        return self._gui.make_box(elements, position, size)
 
     def make_menu(self, box=None):
-        menu = self._gui.Menu(box)
-        for element in menu.get_population():
-            element.surface = self.screen
-        return menu
+        return self._gui.make_menu(box)
 
     def push_event(self, event, data=None):
-        event = self._lib.event.Event(event, data or {})
-        return self._lib.event.post(event)
+        self._lib.push_event(event, data)
 
     def draw_rect(self, surface, color, rect, width=0):
-        self._lib.draw.rect(surface, color, rect, width)
+        self._lib.draw_rect(surface, color, rect, width)
