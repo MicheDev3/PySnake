@@ -12,16 +12,16 @@ class Scene(object):
                        }
 
     def on_event(self, event):
-        self.scenes[self.current].on_event(event)
-        if self.scenes[self.current]._menu:
-            self.scenes[self.current]._menu.react(event)
-
         if event.type == EVENT_TYPE['START']:
             self.current = "GameScene"
         elif event.type == EVENT_TYPE['MENU']:
             self.current = "MenuScene"
         elif event.type == EVENT_TYPE['SETTINGS']:
             self.current = "SettingsScene"
+
+        self.scenes[self.current].on_event(event)
+        if self.scenes[self.current]._menu:
+            self.scenes[self.current]._menu.react(event)
 
     def on_update(self):
         self.scenes[self.current].on_update()
@@ -31,7 +31,6 @@ class MenuScene(object):
 
     def __init__(self, engine):
         self._engine = engine
-
         self._create_gui()
 
     def _create_gui(self):
@@ -71,9 +70,8 @@ class GameScene(object):
 
     def __init__(self, engine):
         self.rows = 20
+        self._is_dead = False
         self._engine = engine
-
-        self._reset()
         self._create_gui()
 
     def _create_gui(self):
@@ -85,10 +83,10 @@ class GameScene(object):
         # TODO fix position text inside the box
         self._score_text = self._engine.make_text("")
         self._retry_button = self._engine.make_button(
-            "Retry", func=self._reset
+            "Retry", func=self._engine.push_event, params={'event': EVENT_TYPE['START']}
         )
         self._menu_button = self._engine.make_button(
-            "Menu", func=self._quit
+            "Menu", func=self._engine.push_event, params={'event': EVENT_TYPE['MENU']}
         )
         self._box = self._engine.make_box(
             [self._score_text, self._retry_button, self._menu_button], position, size=size
@@ -105,12 +103,6 @@ class GameScene(object):
         self._game_objects = [ObjectFactory.create_snack(),
                               ObjectFactory.create_snake()
                               ]
-
-    def _quit(self):
-        self._reset()
-        self._engine.push_event(
-            EVENT_TYPE['MENU']
-        )
 
     @property
     def game_objects(self):
@@ -131,6 +123,8 @@ class GameScene(object):
             # the cursor
             self._menu = self._engine.make_menu(self._box)
             self._score_text.set_text("Score: %s" % self._score)
+        if event.type == EVENT_TYPE['START']:
+            self._reset()
 
     def on_update(self):
         # rendering the scene
@@ -140,7 +134,7 @@ class GameScene(object):
         if self._is_dead:
             self._render_gui()
             return
-        
+
         for game_object in self._game_objects:
             game_object.update(self, self._engine)
             game_object.draw(width // self.rows, self._engine)
