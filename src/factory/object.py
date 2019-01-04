@@ -17,59 +17,79 @@ class Object(object):
     class Body(object):
 
         def __init__(self, pos, color):
-            self.dirnx = 0
-            self.dirny = 0
-            self.pos = pos
-            self.color = color
+            self._dirnx = 0
+            self._dirny = 0
+            self._pos = pos
+            self._color = color
+
+        @property
+        def dirnx(self):
+            return self._dirnx
+
+        @property
+        def dirny(self):
+            return self._dirny
+
+        def _get_pos(self):
+            return self._pos
+
+        def _set_pos(self, pos):
+            self._pos = pos
+
+        pos = property(_get_pos, _set_pos)
 
         def move(self, dirnx, dirny, max):
-            if self.pos[0] + dirnx > max:
+            if self._pos[0] + dirnx > max:
                 pos_x = -1
-            elif self.pos[0] + dirnx < 0:
+            elif self._pos[0] + dirnx < 0:
                 pos_x = max
             else:
-                pos_x = self.pos[0]
+                pos_x = self._pos[0]
 
-            if self.pos[1] + dirny > max:
+            if self._pos[1] + dirny > max:
                 pos_y = -1
-            elif self.pos[1] + dirny < 0:
+            elif self._pos[1] + dirny < 0:
                 pos_y = max
             else:
-                pos_y = self.pos[1]
+                pos_y = self._pos[1]
 
-            self.dirnx = dirnx
-            self.dirny = dirny
-            self.pos = (pos_x + dirnx, pos_y + dirny)
+            self._dirnx = dirnx
+            self._dirny = dirny
+            self._pos = (pos_x + dirnx, pos_y + dirny)
 
     def __init__(self, pos, color, components):
-        self.components = components
-        self.body = [self.Body(pos, color)]
+        self._components = components
+        self._body = [self.Body(pos, color)]
+
+    @property
+    def body(self):
+        return self._body
 
     def update(self, scene, engine):
-        for component in self.components:
+        for component in self._components:
             component.update(self, scene, engine)
 
     def is_on_screen(self, rows):
-        return self.body[0].pos[0] < rows and self.body[0].pos[1] < rows
+        return self._body[0]._pos[0] < rows and self._body[0]._pos[1] < rows
 
     def grow(self):
-        dirnx, dirny = self.body[-1].dirnx, self.body[-1].dirny
+        dirnx, dirny = self._body[-1]._dirnx, self._body[-1]._dirny
 
         if dirnx == 1 and dirny == 0:
-            self.body.append(self.Body((self.body[-1].pos[0] - 1, self.body[-1].pos[1]), self.body[-1].color))
+            self._body.append(self.Body((self._body[-1]._pos[0] - 1, self._body[-1]._pos[1]), self._body[-1]._color))
         elif dirnx == -1 and dirny == 0:
-            self.body.append(self.Body((self.body[-1].pos[0] + 1, self.body[-1].pos[1]), self.body[-1].color))
+            self._body.append(self.Body((self._body[-1]._pos[0] + 1, self._body[-1]._pos[1]), self._body[-1]._color))
         elif dirnx == 0 and dirny == 1:
-            self.body.append(self.Body((self.body[-1].pos[0], self.body[-1].pos[1] - 1), self.body[-1].color))
+            self._body.append(self.Body((self._body[-1]._pos[0], self._body[-1]._pos[1] - 1), self._body[-1]._color))
         elif dirnx == 0 and dirny == -1:
-            self.body.append(self.Body((self.body[-1].pos[0], self.body[-1].pos[1] + 1), self.body[-1].color))
+            self._body.append(self.Body((self._body[-1]._pos[0], self._body[-1]._pos[1] + 1), self._body[-1]._color))
 
-        self.body[-1].dirnx = dirnx
-        self.body[-1].dirny = dirny
+        self._body[-1]._dirnx = dirnx
+        self._body[-1]._dirny = dirny
 
     def draw(self, size, engine):
-        for part in self.body:
-            pos_x, pos_y = part.pos
+        for part in self._body:
+            pos_x, pos_y = part._pos
             engine.draw_rect(
-                engine.screen, part.color, (pos_x * size + 1, pos_y * size + 1, size - 2, size - 2)
+                engine.screen, part._color, (pos_x * size + 1, pos_y * size + 1, size - 2, size - 2)
             )

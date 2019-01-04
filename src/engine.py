@@ -1,5 +1,4 @@
-from src.vendor.pygame import PyGame
-from src.vendor.thorpy import Thorpy
+from src.vendor import PyGame, Thorpy
 
 
 class PyEngine(object):

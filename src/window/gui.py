@@ -1,36 +1,13 @@
 from src.event import EVENT_TYPE
-from src.factory.object import ObjectFactory
+
+__all__ = ['MenuGui', 'GameGui', 'SettingsGui']
 
 
-class Scene(object):
-
-    def __init__(self, engine):
-        self.current = "MenuScene"
-        self.scenes = {"GameScene": GameScene(engine),
-                       "MenuScene": MenuScene(engine),
-                       "SettingsScene": SettingsScene(engine),
-                       }
-
-    def on_event(self, event):
-        if event.type == EVENT_TYPE['START']:
-            self.current = "GameScene"
-        elif event.type == EVENT_TYPE['MENU']:
-            self.current = "MenuScene"
-        elif event.type == EVENT_TYPE['SETTINGS']:
-            self.current = "SettingsScene"
-
-        self.scenes[self.current].on_event(event)
-        if self.scenes[self.current]._menu:
-            self.scenes[self.current]._menu.react(event)
-
-    def on_update(self):
-        self.scenes[self.current].on_update()
-
-
-class MenuScene(object):
+class MenuGui(object):
 
     def __init__(self, engine):
         self._engine = engine
+        self._visible = True
         self._create_gui()
 
     def _create_gui(self):
@@ -58,20 +35,18 @@ class MenuScene(object):
         self._box.update()
 
     def on_event(self, event):
-        pass
+        self._menu.react(event)
 
     def on_update(self):
-        self._engine.screen.fill((0, 0, 0))
+        if self._visible:
+            self._render_gui()
 
-        self._render_gui()
 
-
-class GameScene(object):
+class GameGui(object):
 
     def __init__(self, engine):
-        self.rows = 20
-        self._is_dead = False
         self._engine = engine
+        self._visible = False
         self._create_gui()
 
     def _create_gui(self):
@@ -91,60 +66,32 @@ class GameScene(object):
         self._box = self._engine.make_box(
             [self._score_text, self._retry_button, self._menu_button], position, size=size
         )
+        self._menu = self._engine.make_menu()
 
     def _render_gui(self):
         self._box.blit()
         self._box.update()
 
-    def _reset(self):
-        self._score = 0
-        self._menu = None  # reset the menu object
-        self._is_dead = False
-        self._game_objects = [ObjectFactory.create_snack(),
-                              ObjectFactory.create_snake()
-                              ]
-
-    @property
-    def game_objects(self):
-        return self._game_objects
-
-    @property
-    def score(self):
-        return self._score
-
     def on_event(self, event):
-        if event.type == EVENT_TYPE['SNACK_EATEN']:
-            self._score += 1
         if event.type == EVENT_TYPE['DEAD']:
-            self._is_dead = True
-            # create the menu box only when _is_dead
-            # is True and delete when False, this avoid
-            # rendering the box when hovering with
-            # the cursor
+            self._visible = True
             self._menu = self._engine.make_menu(self._box)
-            self._score_text.set_text("Score: %s" % self._score)
+            self._score_text.set_text("Score: %s" % event.score)
         if event.type == EVENT_TYPE['START']:
-            self._reset()
+            self._visible = False
+            self._menu = self._engine.make_menu()
+        self._menu.react(event)
 
     def on_update(self):
-        # rendering the scene
-        self._engine.screen.fill((0, 0, 0))
-        width = self._engine.screensize[0]
-
-        if self._is_dead:
+        if self._visible:
             self._render_gui()
-            return
-
-        for game_object in self._game_objects:
-            game_object.update(self, self._engine)
-            game_object.draw(width // self.rows, self._engine)
 
 
-class SettingsScene(object):
+class SettingsGui(object):
 
     def __init__(self, engine):
         self._engine = engine
-
+        self._visible = True
         self._create_gui()
 
     def _create_gui(self):
@@ -162,9 +109,8 @@ class SettingsScene(object):
         self._box.update()
 
     def on_event(self, event):
-        pass
+        self._menu.react(event)
 
     def on_update(self):
-        self._engine.screen.fill((0, 0, 0))
-
-        self._render_gui()
+        if self._visible:
+            self._render_gui()
